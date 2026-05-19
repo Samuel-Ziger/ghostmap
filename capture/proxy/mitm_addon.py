@@ -28,7 +28,6 @@ import logging
 import os
 import time
 import uuid
-from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any
 
@@ -60,11 +59,16 @@ def _split_csv(value: str | None) -> list[str]:
     return [v.strip() for v in value.split(",") if v.strip()]
 
 
-@dataclass
 class Scope:
     """Decide se um host deve ser capturado."""
-    include: list[str] = field(default_factory=list)
-    exclude: list[str] = field(default_factory=list)
+
+    def __init__(
+        self,
+        include: list[str] | None = None,
+        exclude: list[str] | None = None,
+    ) -> None:
+        self.include = include or []
+        self.exclude = exclude or []
 
     def matches(self, host: str) -> bool:
         host = host.lower()

@@ -26,6 +26,16 @@ export default function ProxyPage() {
     });
   }, [active?.id, push]);
 
+  if (!active?.id) {
+    const hint = process.env.NEXT_PUBLIC_DEFAULT_PROJECT_ID?.slice(0, 8) ?? "f7bc9473";
+    return (
+      <div className="p-10 max-w-xl text-sm text-mute space-y-3">
+        <p className="text-ink font-medium">Nenhum projeto selecionado</p>
+        <p>Escolha um projeto no menu <b>Projeto</b> no topo. Você tem dois chamados &quot;teste&quot; — escolha o que começa com <code className="text-accent2">{hint}…</code> (o do <code className="text-accent2">.env</code>).</p>
+      </div>
+    );
+  }
+
   const filtered = liveRequests.filter((r) => {
     if (filter.method && r.method !== filter.method) return false;
     if (filter.only_xhr && !r.is_xhr) return false;

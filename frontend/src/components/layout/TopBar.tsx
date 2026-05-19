@@ -3,10 +3,22 @@ import { useEffect } from "react";
 import { useSessionStore } from "@/store/session.store";
 import { api } from "@/lib/api";
 
+const DEFAULT_PROJECT_ID = process.env.NEXT_PUBLIC_DEFAULT_PROJECT_ID ?? "";
+
 export function TopBar() {
   const { projects, activeProject, setActiveProject, setProjects } = useSessionStore();
 
-  useEffect(() => { api.listProjects().then(setProjects).catch(() => {}); }, [setProjects]);
+  useEffect(() => {
+    api.listProjects().then((ps) => {
+      setProjects(ps);
+      const current = useSessionStore.getState().activeProject;
+      if (current) return;
+      const preferred = DEFAULT_PROJECT_ID
+        ? ps.find((p) => p.id === DEFAULT_PROJECT_ID)
+        : ps[0];
+      if (preferred) setActiveProject(preferred);
+    }).catch(() => {});
+  }, [setProjects, setActiveProject]);
 
   return (
     <header className="h-12 border-b border-border bg-panel/80 backdrop-blur flex items-center px-4 gap-3">
@@ -20,7 +32,11 @@ export function TopBar() {
         className="bg-bg border border-border rounded px-2 py-1 text-sm"
       >
         <option value="">— selecionar —</option>
-        {projects.map((p) => (<option key={p.id} value={p.id}>{p.name}</option>))}
+        {projects.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.name} ({p.id.slice(0, 8)}…)
+          </option>
+        ))}
       </select>
 
       <div className="ml-auto flex items-center gap-3 text-xs text-mute">

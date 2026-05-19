@@ -8,6 +8,13 @@ cd "$ROOT"
 
 log() { printf "\033[1;35m[ghostmap]\033[0m %s\n" "$*"; }
 
+if [[ -f .env ]]; then
+  set -a
+  # shellcheck disable=SC1091
+  source .env
+  set +a
+fi
+
 if [[ ! -f .env ]]; then
   log "criando .env a partir de .env.example"
   cp .env.example .env
@@ -18,14 +25,8 @@ if [[ ! -f .env ]]; then
   fi
 fi
 
-log "subindo stack docker-compose"
-docker compose up -d postgres neo4j redis
-
-log "aguardando postgres saudavel..."
-until docker compose exec -T postgres pg_isready -U ghostmap >/dev/null 2>&1; do sleep 1; done
-
-log "aguardando neo4j saudavel..."
-until docker compose exec -T neo4j wget -q --spider http://localhost:7474; do sleep 2; done
+log "subindo stack docker-compose (aguarda healthchecks)"
+docker compose up -d --wait postgres neo4j redis
 
 log "rodando migrations postgres"
 docker compose run --rm backend alembic upgrade head || true

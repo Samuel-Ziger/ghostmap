@@ -18,8 +18,8 @@ export function WSBridge() {
     ghostws.connect();
     const off = ghostws.on((m) => {
       if (m.type === "http_request") {
-        // m.data e um sumario do request — coerce para o tipo
-        // (campos opcionais ficam undefined; o componente de grid trata)
+        const data = m.data as { project_id?: string };
+        if (active?.id && data.project_id && data.project_id !== active.id) return;
         pushReq(m.data as never);
       } else if (m.type === "graph_update" && active?.id) {
         // refresh diferido: 300ms para batching

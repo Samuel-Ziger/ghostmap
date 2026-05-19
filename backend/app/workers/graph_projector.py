@@ -6,7 +6,7 @@ mesma session forma uma aresta CHAINS_INTO).
 from __future__ import annotations
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from uuid import UUID
 
 from app.core.events import EventBus, Streams
@@ -62,6 +62,12 @@ async def _project(svc: GraphService, ev: dict) -> None:
 
 
 def _dt(s: str | None) -> datetime:
-    if not s: return datetime.utcnow()
-    try: return datetime.fromisoformat(s.replace("Z", "+00:00"))
-    except ValueError: return datetime.utcnow()
+    if not s:
+        return datetime.now(timezone.utc).replace(tzinfo=None)
+    try:
+        dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+        if dt.tzinfo is not None:
+            dt = dt.astimezone(timezone.utc).replace(tzinfo=None)
+        return dt
+    except ValueError:
+        return datetime.now(timezone.utc).replace(tzinfo=None)
